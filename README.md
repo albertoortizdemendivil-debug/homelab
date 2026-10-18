@@ -1,8 +1,8 @@
-# Private Home NAS — encrypted storage over a Tailscale mesh VPN
+# Homelab
 
-A secure, private home NAS built on Ubuntu Server: LUKS-encrypted storage shared over Samba and reachable from anywhere through a Tailscale mesh VPN, with no ports opened on the router.
+A self-hosted homelab on a repurposed laptop running Ubuntu Server: encrypted storage, private remote access through a Tailscale mesh VPN, and small services I can understand and maintain.
 
-It runs on an old laptop repurposed as a headless server. I built it to learn how a small, realistic system is secured and operated end to end: disk encryption, remote access, a firewall policy, file sharing and, above all, what to do when something breaks.
+The first service is a private home NAS: a LUKS-encrypted SSD shared over Samba and reachable from anywhere, with no ports opened on the router. I built it to learn how a small, realistic system is secured and operated end to end: disk encryption, remote access, a firewall policy, file sharing and, above all, what to do when something breaks.
 
 > **Background:** the same server originally hosted a personal Telegram assistant. I retired that project and kept the infrastructure, which turned out to be the part worth keeping.
 
@@ -19,6 +19,54 @@ It runs on an old laptop repurposed as a headless server. I built it to learn ho
                                               /mnt/<ssd>  ◄───┘
                                               LUKS2 + ext4, unlocked by hand
 ```
+
+## Documentation
+
+### Server
+
+| Guide | What it covers |
+|---|---|
+| [Disk encryption](server/encryption.md) | LUKS on the main disk and the external SSD, daily unlock routine |
+| [Remote access](server/remote-access.md) | Tailscale, working behind NAT or CGNAT, firewall policy |
+
+### Services
+
+| Service | What it does | Status | Docs |
+|---|---|---|---|
+| NAS | Samba share on the encrypted SSD | Running | [services/nas](services/nas/README.md) |
+| AdGuard Home | DNS with ad and tracker filtering, served over Tailscale | Planned | — |
+| Uptime Kuma | Service monitoring with alerts to a chat app | Planned | — |
+| restic | Versioned, encrypted backups to a second location | Planned | — |
+
+### Runbooks
+
+| Runbook | When to use it |
+|---|---|
+| [USB drop recovery](docs/runbooks/usb-drop-recovery.md) | The external SSD disconnects and writes fail with `Input/output error` |
+
+## Repository layout
+
+```
+homelab/
+├── README.md                       overview, index and status
+├── server/                         the machine itself
+│   ├── encryption.md               LUKS on the main disk and the external SSD
+│   └── remote-access.md            Tailscale and firewall policy
+├── services/                       what runs on top of it
+│   └── nas/
+│       └── README.md               Samba share on the encrypted SSD
+└── docs/
+    └── runbooks/
+        └── usb-drop-recovery.md    step-by-step recovery after a USB drop
+```
+
+Conventions:
+
+- One folder per service under `services/`, with its own `README.md` and, when it runs in Docker, its `docker-compose.yml`.
+- Anything about the machine rather than a service goes in `server/`.
+- Step-by-step incident procedures go in `docs/runbooks/`.
+- File names are lowercase and hyphenated, and nothing is numbered: the index above defines the reading order.
+- No secrets and no real addresses are committed. Values appear as `<placeholders>`.
 
 ## Stack
 
@@ -41,28 +89,13 @@ It runs on an old laptop repurposed as a headless server. I built it to learn ho
 4. **Least privilege on the share.** One named Samba user, no guest access, restrictive file masks. Samba also refuses connections while the encrypted disk is not mounted, so nothing can land on the wrong disk.
 5. **Secrets hygiene.** Any secret that shows up in a chat, a log or a commit is treated as compromised and rotated.
 
-## Documentation
-
-| Guide | What it covers |
-|---|---|
-| [1. Disk encryption](1-Encryption.md) | LUKS on the main disk and the external SSD, daily unlock routine, recovery after a USB drop |
-| [2. Samba](2-Samba.md) | A basic, restricted share: user creation, share definition, firewall, unmounted-disk safeguard |
-| [3. Tailscale](3-Tailscale.md) | Installing the agent, joining devices, working behind NAT or CGNAT, firewall policy |
-
 ## Hardware
 
 HP Pavilion Gaming laptop (Intel i5-10300H, 8 GB RAM, 500 GB NVMe) with a 1 TB USB SSD.
 
 ## What I learned
 
-- **Test a disk by writing to it, not by listing it.** After a USB drop, `ls` kept showing the files while every write failed with `Input/output error`.
+- **Test a disk by writing to it, not by listing it.** After a USB drop, `ls` kept showing the files while every write failed with `Input/output error`. The [runbook](docs/runbooks/usb-drop-recovery.md) came from that incident.
 - **Device letters are not stable.** The SSD changed from `sdb` to `sda` after a reboot, so it is now always referred to by UUID.
 - **A service must never write to a mount point that is not mounted.** It silently fills the empty directory on the system disk instead. Samba now checks for a marker file on the SSD before accepting any connection.
 - **Logs can leak secrets.** An HTTP client library printed full URLs, API token included, at its default log level.
-- **Document the recovery path, not just the setup.** The runbook in guide 1 came from a real incident.
-
-## Roadmap
-
-- DNS with ad and tracker filtering (AdGuard Home), served over Tailscale.
-- Service monitoring with Uptime Kuma, with alerts to a chat app.
-- Versioned, encrypted backups with restic to a second location.
