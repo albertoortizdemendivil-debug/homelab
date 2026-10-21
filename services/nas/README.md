@@ -1,6 +1,6 @@
 # NAS: Samba share on the encrypted SSD
 
-[← Back to index](../../README.md) · [← Encryption](../../server/encryption.md) · [Remote access →](../../server/remote-access.md)
+[← Back to index](../../README.md) · [← Encryption](../../server/encryption.md) · [Remote access →](../../server/remote-access.md) · [Samba →](../../server/samba-documentation.md) 
 
 A basic Samba share exposes the encrypted SSD as a network folder (SMB3). It is only reachable through Tailscale, with one authenticated user and no guest access. The configuration is deliberately standard.
 
