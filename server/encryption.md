@@ -1,6 +1,6 @@
 # Disk encryption (LUKS)
 
-[← Back to index](../README.md) · [Remote access →](remote-access.md)
+[← Back to index](../README.md) · [Remote access →](remote-access.md) · [Samba →](samba-documentation.md)
 
 The server has two independent encryption layers, each with its own passphrase:
 
@@ -90,6 +90,8 @@ lsblk -f                                          # find the LUKS partition and 
 sudo cryptsetup luksOpen /dev/disk/by-uuid/<LUKS-UUID> zen_ssd
 sudo mount /dev/mapper/zen_ssd /mnt/zen-ssd
 ```
+
+Nothing else is needed for the NAS: Samba is already running and checks the `.ssd_ok` marker on every connection ([NAS service, safeguard](../services/nas/README.md#safeguard-refuse-connections-while-the-ssd-is-not-mounted)). If clients are still refused, see [Samba documentation, common problems](samba-documentation.md#11-maintenance-and-common-problems).
 
 Before unplugging the SSD:
 

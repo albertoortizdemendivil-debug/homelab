@@ -1,6 +1,6 @@
 # Remote access with Tailscale
 
-[← Back to index](../README.md) · [← Encryption](encryption.md)
+[← Back to index](../README.md) · [← Encryption](encryption.md) · [Samba →](samba-documentation.md)
 
 Tailscale builds a private network (a WireGuard-based mesh VPN) between the server and my devices. It is the **only way in from outside**: no port is open on the router.
 
@@ -62,6 +62,8 @@ ssh -p <ssh-port> <user>@<tailscale-name>
 \\<tailscale-name>\zen-ssd
 ```
 
+Samba setup: [Samba documentation](samba-documentation.md). Share overview: [NAS service](../services/nas/README.md).
+
 To see whether a connection is direct or relayed:
 
 ```bash
@@ -92,9 +94,11 @@ Result:
 
 Any new service (DNS, monitoring...) gets added the same way: only on `tailscale0`.
 
+Restrict a service with the firewall and, if it supports it, by source address (`100.64.0.0/10`). Do not rely on binding the service to the `tailscale0` interface by name: Samba could not bind to it and ended up listening on localhost only. See the [Samba incident report](../docs/runbooks/incident-report-samba.md), and [Samba documentation, firewall](samba-documentation.md#7-firewall-ufw) for the working setup.
+
 ## Tips and limits
 
 - **Key expiry.** By default each device's key expires after a while (180 days at the time of writing). It can be disabled for the server in the Tailscale admin console, so it does not disconnect on its own.
 - **Dependency.** If `tailscaled` goes down, the only way in is the physical console. That is worth watching once monitoring is in place.
-- **After a reboot**, the server waits for the main disk passphrase at the console before `tailscaled` can start. Until then, it cannot be reached over the network.
+- **After a reboot**, the server waits for the main disk passphrase at the console before `tailscaled` can start. Until then, it cannot be reached over the network. Once it is up, unlock the external SSD as in the [daily routine](encryption.md#daily-routine).
 - **Access control.** With a handful of personal devices, ACLs are not needed, but Tailscale can restrict which device may talk to which.

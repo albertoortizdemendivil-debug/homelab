@@ -1,8 +1,10 @@
 # NAS: Samba share on the encrypted SSD
 
-[← Back to index](../../README.md) · [← Encryption](../../server/encryption.md) · [Remote access →](../../server/remote-access.md) · [Samba →](../../server/samba-documentation.md) 
+[← Back to index](../../README.md) · [← Encryption](../../server/encryption.md) · [Remote access →](../../server/remote-access.md) · [Samba →](../../server/samba-documentation.md)
 
-A basic Samba share exposes the encrypted SSD as a network folder (SMB3). It is only reachable through Tailscale, with one authenticated user and no guest access. The configuration is deliberately standard.
+Troubleshooting: [USB drop recovery](../../docs/runbooks/usb-drop-recovery.md) · [Samba unreachable over Tailscale](../../docs/runbooks/incident-report-samba.md)
+
+A basic Samba share exposes the encrypted SSD as a network folder (SMB3). It is only reachable through Tailscale, with one authenticated user and no guest access. The share definition is deliberately standard. The step-by-step setup, including the source restriction to Tailscale, is in the [Samba documentation](../../server/samba-documentation.md).
 
 ## Install
 
@@ -55,7 +57,7 @@ Added at the end of `/etc/samba/smb.conf`:
 | `directory mask = 0700` | Same for new folders |
 | `root preexec`, `root preexec close` | Refuse the connection if the SSD is not mounted (see below) |
 
-The `[global]` section keeps the defaults of the Ubuntu package (`server role = standalone server`, `map to guest = Bad User`, `obey pam restrictions = Yes`...). The `[printers]` and `[print$]` sections are defaults too and are not used.
+The `[global]` section keeps the defaults of the Ubuntu package (`server role = standalone server`, `map to guest = Bad User`, `obey pam restrictions = Yes`...), plus the source restriction (`smb ports`, `hosts allow`, `hosts deny`) described in [Samba documentation, section 5](../../server/samba-documentation.md#5-configuration-etcsambasmbconf). The `[printers]` and `[print$]` sections are defaults too and are not used.
 
 Validate and apply:
 
@@ -79,7 +81,7 @@ Expected output (next to the SSH rule):
 445/tcp   on tailscale0   ALLOW IN   Anywhere
 ```
 
-Nothing reaches Samba from the local network or from the internet.
+Nothing reaches Samba from the local network or from the internet. Samba adds a second layer: `hosts allow` and `hosts deny` reject any source outside Tailscale. The full policy is in [Remote access, firewall policy](../../server/remote-access.md#firewall-policy).
 
 ## Connect from clients
 
@@ -93,7 +95,7 @@ Always use the server's Tailscale name or IP:
 net use Z: \\<tailscale-name>\zen-ssd /user:<user>
 ```
 
-Any SMB client works on a phone. The SSD can also be reached over SSHFS (see the index).
+Any SMB client works on a phone. The SSD can also be reached over SSHFS (see the [stack table](../../README.md#stack) in the index).
 
 ## Verify
 
@@ -125,7 +127,7 @@ testparm -s
 sudo systemctl reload smbd
 ```
 
-With the SSD unmounted the file does not exist and the connection is refused. With the SSD mounted, everything works as before.
+With the SSD unmounted the file does not exist and the connection is refused. With the SSD mounted, everything works as before. The SSD is unlocked and mounted as in the [disk encryption daily routine](../../server/encryption.md#daily-routine). If it drops while mounted, follow the [USB drop recovery runbook](../../docs/runbooks/usb-drop-recovery.md).
 
 ## Possible improvements
 
@@ -133,4 +135,5 @@ None of these is applied yet:
 
 - `server min protocol = SMB3`: reject older SMB versions.
 - `server smb encrypt = required`: SMB encryption on top of the tunnel.
-- `interfaces = lo tailscale0` with `bind interfaces only = yes`: make Samba listen only on Tailscale (make sure `tailscaled` starts before `smbd`).
+
+**Tried and reverted:** `interfaces = lo tailscale0` with `bind interfaces only = yes`, to make Samba listen only on Tailscale. Samba did not bind to the Tailscale interface and listened on localhost only, so the share became unreachable. The restriction is now done by source address (`hosts allow` / `hosts deny`). See the [incident report](../../docs/runbooks/incident-report-samba.md).
