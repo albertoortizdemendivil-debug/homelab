@@ -30,9 +30,9 @@ After restricting Samba so that it only served clients over Tailscale, the share
 
 ## Root Cause
 
-Samba did not bind to the `tailscale0` interface when it was given by name. The most likely reason is that Tailscale creates a virtual point-to-point interface, which Samba does not always handle well. This cause was **not confirmed with a direct test**; it was inferred from the behaviour.
+Samba did not bind to the `tailscale0` interface when it was given by name. The most likely reason is that Tailscale creates a virtual point-to-point interface, which Samba does not always handle well. This cause was **not confirmed with a direct test**; it was inferred from the behavior.
 
-With `bind interfaces only = yes`, Samba listens only on the interfaces it manages to recognise. Because it did not recognise `tailscale0`, it was left with the loopback interface only.
+With `bind interfaces only = yes`, Samba listens only on the interfaces it manages to recognize. Because it did not recognize `tailscale0`, it was left with the loopback interface only.
 
 ## What Was Tried
 
@@ -81,7 +81,8 @@ The router has no open ports, so nothing is reachable from the internet.
 
 - [ ] Verify `sudo ufw status verbose` (active, with rules `on tailscale0`).
 - [ ] Reboot the server as a test and confirm the share is still reachable (after a reboot, unlock the SSD first: [daily routine](../../server/encryption.md#daily-routine)).
-- Not needed: with `hosts allow` Samba no longer binds to the Tailscale address, so it does not have to start after `tailscaled`.
+
+> **Note:** a systemd `After=tailscaled.service` ordering is not needed. With `hosts allow`, Samba no longer binds to the Tailscale address, so it does not have to start after `tailscaled`.
 
 ## Related Documentation
 
