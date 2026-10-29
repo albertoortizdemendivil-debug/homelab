@@ -8,13 +8,19 @@ Use this when the external SSD disconnects and the mount stops working.
 
 **Cause:** a momentary USB disconnect leaves the `dm-crypt` mapping orphaned. Writes that were only in cache are lost.
 
+**Evidence:** the kernel log usually shows the disconnect and helps tell a cable or port problem from a failing disk:
+
+```bash
+sudo dmesg | grep -iE "usb|sd[a-z]|I/O error" | tail -30
+```
+
 **Trap:** `ls` keeps listing the files with their size and date because it reads from cache. The real test is writing:
 
 ```bash
 touch /mnt/zen-ssd/test && rm /mnt/zen-ssd/test
 ```
 
-**Steps, in order (stop as soon as one works):**
+**Steps, in order (if the write test passes after any step, you can stop):**
 
 ```bash
 # 1. Stop everything that uses the disk (containers, Samba...)
@@ -29,8 +35,10 @@ sudo cryptsetup luksClose zen_ssd
 sudo dmsetup info /dev/mapper/zen_ssd
 sudo dmsetup remove --force zen_ssd
 
-# 4. Open and mount again (letter and UUID from lsblk -f)
+# 4. Open the volume, check the filesystem while it is NOT mounted, then mount
+#    (the UUID comes from lsblk -f)
 sudo cryptsetup luksOpen /dev/disk/by-uuid/<LUKS-UUID> zen_ssd
+sudo fsck.ext4 -f /dev/mapper/zen_ssd
 sudo mount /dev/mapper/zen_ssd /mnt/zen-ssd
 
 # 5. Check the marker file and a real write, then start Samba again
