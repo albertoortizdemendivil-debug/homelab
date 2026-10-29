@@ -55,6 +55,7 @@ homelab/
 ├── server/                         the machine itself
 │   ├── encryption.md               LUKS on the main disk and the external SSD
 │   ├── remote-access.md            Tailscale and firewall policy
+│   ├── ssh-hardening.md            SSH, fail2ban, idle timeout, automatic updates
 │   └── samba-documentation.md      full Samba setup, restricted to Tailscale
 ├── services/                       what runs on top of it
 │   └── nas/
