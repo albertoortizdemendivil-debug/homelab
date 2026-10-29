@@ -26,6 +26,8 @@ curl -fsSL https://tailscale.com/install.sh | sh
 sudo tailscale up
 ```
 
+> **Note:** piping a script into `sh` runs whatever the server returns. This is the vendor's official installer, but to review it first, download it with `curl -fsSL https://tailscale.com/install.sh -o install.sh`, read it, then run `sh install.sh`. Tailscale also publishes an apt repository for Ubuntu.
+
 `tailscale up` prints a link: open it in a browser and sign in to attach the server to your account.
 
 Check:
@@ -50,7 +52,7 @@ Every device gets **its own Tailscale IP** in the `100.x.y.z` range, separate fr
 On Android, Tailscale runs as a VPN, so the phone shows the VPN (key) icon while it is connected. Two consequences:
 
 - **Only one VPN can be active at a time on Android.** Turning on another VPN app disconnects Tailscale, and the other way round.
-- **Only tailnet traffic goes through the tunnel.** By default, normal internet traffic keeps using the phone's own connection. Everything else is sent through the tunnel only if an exit node is configured, which is not the case here.
+- **Only tailnet traffic goes through the tunnel.** Normal internet traffic keeps using the phone's own connection, unless an exit node is configured. That is not the case here.
 
 ## Use it
 
