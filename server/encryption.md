@@ -9,6 +9,8 @@ The server has two independent encryption layers, each with its own passphrase:
 | Main disk (NVMe) | LUKS + LVM, created by the installer | Typed at the physical console on every boot |
 | External SSD (USB, 1 TB) | LUKS2 + ext4 | By hand over SSH, after the server has booted |
 
+Naming: the zen_ssd mapping and the /mnt/zen-ssd mount point come from ZEN, the Telegram study assistant this server originally hosted. The project is retired, but I kept the names.
+
 ## Main disk
 
 Configured during the Ubuntu Server 24.04 installation, with no commands:
