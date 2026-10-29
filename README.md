@@ -29,6 +29,7 @@ The first service is a private home NAS: a LUKS-encrypted SSD shared over Samba 
 | [Disk encryption](server/encryption.md) | LUKS on the main disk and the external SSD, daily unlock routine |
 | [Remote access](server/remote-access.md) | Tailscale, working behind NAT or CGNAT, firewall policy |
 | [Samba documentation](server/samba-documentation.md) | Full Samba setup restricted to Tailscale, share options, common problems |
+| [SSH hardening and updates](server/ssh-hardening.md) | Key-only login, fail2ban, idle timeout, unattended upgrades |
 
 ### Services
 
